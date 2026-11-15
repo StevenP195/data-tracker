@@ -109,7 +109,7 @@
          The spread between the best and worst market is ${fmtNum(best.pct - worst.pct)} percentage points.`,
         `How: for each row in the Index group, the first and latest non-empty <code>close</code> in the history file;
          change = latest ÷ first − 1, ${span}.`));
-      after.push(() => bar("f1", mk.map(m => m.item.replace("TXSE: Texas Equity Index ETF (TXS)", "TXSE (TXS)")), mk.map(m => m.pct),
+      after.push(() => bar("f1", mk.map(m => m.item.replace("TXSE: Texas Equity Index ETF", "TXSE (TXS)")), mk.map(m => m.pct),
         { label: "Change since first run" }));
     }
 

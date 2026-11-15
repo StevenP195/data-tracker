@@ -22,7 +22,7 @@ INDEXES = {
     "^GSPC": "S&P 500",
     "^IXIC": "Nasdaq Composite",
     "^NYA": "NYSE Composite",
-    "TXS": "TXSE: Texas Equity Index ETF (TXS)",
+    "TXS": "TXSE: Texas Equity Index ETF",
 }
 
 # Large companies tracked every day (Nasdaq and NYSE bellwethers, Houston energy).

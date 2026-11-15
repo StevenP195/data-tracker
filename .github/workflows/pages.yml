@@ -1,0 +1,44 @@
+name: Publish site
+
+on:
+  push:
+    branches: [main]
+  workflow_call: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # include the data commit the daily run just pushed
+      - name: Assemble site (pages, assets, and the two data files)
+        run: |
+          mkdir -p _site/data
+          cp index.html browse.html trends.html manifest.webmanifest sw.js _site/
+          cp -r assets _site/
+          # before the first daily run there is no data yet: publish empty starter files
+          if [ -f data/history.csv ]; then cp data/history.csv _site/data/; else
+            python -c "from tracker import config; print(','.join(config.HISTORY_COLUMNS))" > _site/data/history.csv; fi
+          if [ -f data/status.json ]; then cp data/status.json _site/data/; else
+            echo '{"run_time":"","first_run_date":"","days_with_success":0,"items":0,"new_today":[],"gone_today":[],"sources":[]}' > _site/data/status.json; fi
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
