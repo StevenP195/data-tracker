@@ -23,6 +23,15 @@ def pool(txse_parsed=None, earnings_parsed=None):
     return out
 
 
+def txse_common(txse_parsed=None, yahoo_parsed=None):
+    """TXSE-listed common stocks (for the Yahoo analyst source)."""
+    items = (txse_parsed or {}).get("items", {})
+    if items:
+        return sorted(i for i, l in items.items() if l["security_type"] == "common_stock" and i not in config.INDEXES)
+    return sorted(s for s, q in (yahoo_parsed or {}).items()
+                  if q["exchange"] == "TXSE" and q["instrument"] == "EQUITY" and "-" not in s)
+
+
 def analyst_symbols(symbols, txse_parsed=None):
     """Common stocks only: no indexes, ETFs or preferreds."""
     items = (txse_parsed or {}).get("items", {})

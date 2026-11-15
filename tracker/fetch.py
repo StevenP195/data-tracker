@@ -13,7 +13,7 @@ import shutil
 import traceback
 
 from . import config, universe
-from .sources import ORDER, nasdaq_analyst, yahoo
+from .sources import ORDER, nasdaq_analyst, yahoo, yahoo_analyst
 
 
 def utc_now():
@@ -47,6 +47,8 @@ def fetch_all(now=None, raw_dir=None, runs_dir=None, sources=None):
             ctx["symbols"] = universe.analyst_symbols(
                 ctx.get("pool") or universe.pool(parsed.get("txse_listings"), parsed.get("nasdaq_earnings")),
                 parsed.get("txse_listings"))
+        elif mod is yahoo_analyst:
+            ctx["symbols"] = universe.txse_common(parsed.get("txse_listings"), parsed.get("yahoo_chart"))
         try:
             raw = mod.fetch(ctx)
             parsed[mod.NAME] = mod.parse(raw)

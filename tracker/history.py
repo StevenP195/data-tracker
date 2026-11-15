@@ -11,7 +11,8 @@ Which source a row comes from (the `source` column):
                  when Yahoo has the symbol that day.
   * yahoo_chart  every other item (indexes, watchlist, earnings names).
 Analyst, earnings and short interest columns are joined in from their sources
-by symbol; a value a source does not report that day is left empty.
+by symbol; a value a source does not report that day is left empty. Analyst
+columns come from Nasdaq first, then Yahoo (which covers TXSE listings).
 """
 
 import csv
@@ -68,7 +69,9 @@ def day_rows(date: str, raw_files: dict):
     earn = P.get("nasdaq_earnings") or {}
     yh = P.get("yahoo_chart") or {}
     an = P.get("nasdaq_analyst") or {}
+    ya = P.get("yahoo_analyst") or {}
     top = set(nasdaq_earnings.top(earn, config.EARNINGS_TOP_N))
+    week = set(nasdaq_earnings.week_dates(date))
 
     rows = {}
     for sym, q in yh.items():
@@ -101,6 +104,12 @@ def day_rows(date: str, raw_files: dict):
             r.update(earnings_date=e["earnings_date"], earnings_time=e["earnings_time"],
                      market_cap_b=e["market_cap_b"])
         r.update(an.get(iid, {}))
+        y = ya.get(iid, {})
+        for k, v in y.items():  # Yahoo fills what Nasdaq does not report
+            if k != "next_earnings" and r.get(k) is None:
+                r[k] = v
+        if not r.get("earnings_date") and y.get("next_earnings") in week:
+            r["earnings_date"] = y["next_earnings"]
         if r.get("target_price") and r.get("close"):
             r["upside_pct"] = round((r["target_price"] / r["close"] - 1) * 100, 4)
         if r.get("exchange") == "TXSE" and r.pop("_common", False) and iid in short:

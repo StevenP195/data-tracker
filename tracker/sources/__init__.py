@@ -23,9 +23,9 @@ def num(x):
         return None
 
 
-from . import nasdaq_analyst, nasdaq_earnings, txse, txse_short, yahoo  # noqa: E402
+from . import nasdaq_analyst, nasdaq_earnings, txse, txse_short, yahoo, yahoo_analyst  # noqa: E402
 
 # fetch order matters: the TXSE feed and the earnings calendar decide which
 # symbols the price and analyst sources are asked for
-ORDER = [txse, txse_short, nasdaq_earnings, yahoo, nasdaq_analyst]
+ORDER = [txse, txse_short, nasdaq_earnings, yahoo, nasdaq_analyst, yahoo_analyst]
 BY_NAME = {m.NAME: m for m in ORDER}
