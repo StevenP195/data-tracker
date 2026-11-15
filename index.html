@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data Tracker · Today</title>
+  <meta name="description" content="Daily tracker of the S&P 500, Nasdaq, NYSE and Texas Stock Exchange: earnings-week reporters and analyst expectations.">
+  <meta name="theme-color" content="#0b2a4a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header id="nav"></header>
+  <main>
+    <div class="page-head">
+      <h1>Today</h1>
+      <p id="run-line">Loading the latest run…</p>
+    </div>
+
+    <section class="markets" id="markets" aria-label="Markets"></section>
+    <section class="stats" id="stats" aria-label="Run counts"></section>
+
+    <section class="card">
+      <h2>This week's flags</h2>
+      <p class="sub">Earnings this week: reporting Monday–Friday of the run's week. Expected to rise: at least 15% below the
+        consensus analyst target, with buy ratings at least half of all ratings. Expected to fall: at or above the target,
+        more sells than buys, or (TXSE) short interest up 25%+. Below expectations: more EPS estimate cuts than raises in the
+        last 4 weeks (Yahoo: 30 days).</p>
+      <div class="flags" id="flags"></div>
+    </section>
+
+    <section class="card">
+      <h2>Biggest moves since the previous run <span class="sub" id="moves-sub"></span></h2>
+      <div class="table-wrap"><table id="moves"></table></div>
+    </section>
+
+    <div class="grid two">
+      <section class="card">
+        <h2>Sources</h2>
+        <div class="table-wrap"><table id="sources"></table></div>
+      </section>
+      <section class="card">
+        <h2>Appeared and disappeared</h2>
+        <div id="changes"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Latest values, every item <span class="sub">change since the previous run</span></h2>
+      <div class="table-wrap"><table id="latest"></table></div>
+    </section>
+  </main>
+  <footer>Prices: TXSE official feed and Yahoo Finance · Earnings and analyst data: Nasdaq and Yahoo Finance · Short interest: TXSE.
+    Not investment advice.</footer>
+  <script src="assets/app.js"></script>
+  <script src="assets/today.js"></script>
+</body>
+</html>

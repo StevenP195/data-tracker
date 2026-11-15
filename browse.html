@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data Tracker · Browse</title>
+  <meta name="description" content="Latest values for every tracked index and stock, with filters, search, sorting and a shortlist.">
+  <meta name="theme-color" content="#0b2a4a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header id="nav"></header>
+  <main>
+    <div class="page-head">
+      <h1>Browse</h1>
+      <p id="as-of">Latest values for every item.</p>
+    </div>
+    <section class="card">
+      <div class="controls">
+        <label>Search names<input type="search" id="q" placeholder="e.g. Frost, NVIDIA, CFR" autocomplete="off"></label>
+        <label>Exchange<select id="f-exchange"></select></label>
+        <label>Group<select id="f-group"></select></label>
+        <label>Flag<select id="f-flag"></select></label>
+        <label>Sort by<select id="sort-col"></select></label>
+        <label>Direction<select id="sort-dir"><option value="desc">High → low</option><option value="asc">Low → high</option></select></label>
+        <button class="btn" id="only-stars" aria-pressed="false">★ Shortlist only</button>
+        <button class="btn" id="reset">Reset</button>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="table-wrap"><table id="table"></table></div>
+      <p class="sub" style="margin-top:10px">Click any numeric column header to sort by it (click again to flip).
+        The ★ shortlist is saved in this browser and survives a reload.</p>
+    </section>
+  </main>
+  <script src="assets/app.js"></script>
+  <script src="assets/browse.js"></script>
+</body>
+</html>
