@@ -5,10 +5,10 @@
    - Offline: the last cached copy is served; data files are marked with an
      X-TT-Offline header so the pages show an "offline" banner. */
 
-const CACHE = "data-tracker-v4";
+const CACHE = "data-tracker-v5";
 const SHELL = [
   "./", "index.html", "browse.html", "trends.html", "manifest.webmanifest",
-  "assets/style.css", "assets/space.css", "assets/space.js", "assets/app.js", "assets/today.js", "assets/browse.js", "assets/trends.js",
+  "assets/style.css", "assets/space.css", "assets/space.js", "assets/astro.js", "assets/app.js", "assets/today.js", "assets/browse.js", "assets/trends.js",
   "assets/vendor/chart.umd.min.js",
   "assets/fonts/Inter-400-700.woff2", "assets/fonts/SourceSerif4-400-700.woff2",
   "assets/fonts/IBMPlexMono-400.woff2", "assets/fonts/IBMPlexMono-500.woff2",

@@ -122,7 +122,7 @@ const SPACE = (() => {
     const W = 1000, H = 300;
     const pts = values.filter(v => v !== null);
     const lo = Math.min(...pts), hi = Math.max(...pts);
-    const x0 = 470, x1 = 930, yTop = 46, yBot = 150;
+    const x0 = 440, x1 = 740, yTop = 46, yBot = 150;   // leaves the top-right corner for the astronaut
     const coords = pts.length > 1
       ? pts.map((v, i) => [x0 + (x1 - x0) * i / (pts.length - 1), hi === lo ? (yTop + yBot) / 2 : yBot - (v - lo) / (hi - lo) * (yBot - yTop)])
       : [[x0, (yTop + yBot) / 2], [x1, (yTop + yBot) / 2]];
@@ -169,5 +169,5 @@ const SPACE = (() => {
 
 document.addEventListener("DOMContentLoaded", () => {
   const f = document.querySelector("footer");
-  if (f) f.insertAdjacentHTML("beforebegin", `<div class="footer-sky">${SPACE.footerArt()}</div>`);
+  if (f) f.insertAdjacentHTML("beforebegin", `<div class="footer-sky">${SPACE.footerArt()}<div class="footer-astro" data-astro="floater"></div></div>`);
 });

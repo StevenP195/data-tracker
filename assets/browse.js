@@ -73,7 +73,8 @@
         ${REST.map(c => cell(r, c)).join("")}
         <td>${r.earnings_date ? esc(TT.fmtDate(r.earnings_date)) + (r.earnings_time ? ` <span class="sub">${esc(r.earnings_time)}</span>` : "") : "—"}</td>
         <td>${esc(r.eps_qtr) || "—"}</td><td>${esc(TT.fmtDate(r.price_date))}</td></tr>`).join("")
-        || `<tr><td colspan="30" class="empty">No items match these filters.</td></tr>`}</tbody>`;
+        || `<tr><td colspan="30" class="empty" style="text-align:center"><span class="empty-astro" data-astro="floater"></span>No items match these filters. Lost in space?</td></tr>`}</tbody>`;
+    if (typeof ASTRO !== "undefined") ASTRO.fill($("table"));
   }
 
   $("q").addEventListener("input", e => { state.q = e.target.value; render(); });
