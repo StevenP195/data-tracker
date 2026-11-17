@@ -34,7 +34,7 @@ series letter, e.g. `CFR-PB`). The same item lines up day after day whichever so
 |---|---|---|---|
 | `txse_listings.json.gz` | JSON | TXSE's official listings feed (the public content API behind txse.com): every TXSE listing with its official closing price | the whole feed (~25 listings) |
 | `txse_short_interest.csv.gz` | CSV | TXSE's latest short interest report (published twice a month) | the whole file (one row per TXSE security) |
-| `nasdaq_earnings.json.gz` | JSON | Nasdaq earnings calendar, one response per weekday of the run's week, kept unchanged and keyed by date | the raw file keeps every reporter (~300); the history keeps only the 15 largest by market cap plus tracked items that report that week |
+| `nasdaq_earnings.json.gz` | JSON | Nasdaq earnings calendar, one response per weekday of the run's week, kept in Nasdaq's structure and keyed by date | Nasdaq returns every company reporting that week (300–500); the raw file keeps only the 15 largest by market cap plus any other tracked symbol that reports that week |
 | `yahoo_chart.json.gz` | JSON | Yahoo Finance chart API, one response per tracked symbol, kept unchanged and keyed by symbol | only the tracked symbols, and only the shortest range (last 5 trading days) |
 | `nasdaq_analyst.json.gz` | JSON | Nasdaq analyst API (price target, EPS forecast, earnings surprise), three responses per tracked common stock | only the tracked common stocks; the history keeps the consensus overview, the next quarter's forecast and the latest surprise |
 | `yahoo_analyst.json.gz` | JSON | Yahoo Finance analyst data for TXSE-listed common stocks (Nasdaq has no records for TXSE-primary listings) | only TXSE common stocks; the same fields as above, plus the next earnings date |
@@ -120,14 +120,19 @@ so each day counts once.
 
 | File | What it does |
 |---|---|
+| `README.md` | this file: items, sources, columns, rules and commands |
+| `pyproject.toml`, `uv.lock` | project definition (no runtime dependencies; pytest for the tests) and the locked versions `uv sync` installs |
+| `.gitignore`, `.gitattributes` | files git ignores (caches, virtual env, local build output); line endings, and `.gz`/`.png` stored as binary |
+| `tracker/__init__.py` | marks the `tracker` package |
 | `tracker/__main__.py` | command line: run, fetch, build, issue, trends, serve |
-| `tracker/config.py` | paths, tracked items, signal thresholds, history columns |
+| `tracker/config.py` | paths, tracked items, Houston desk baskets, signal thresholds, history columns |
 | `tracker/http.py` | standard-library HTTP GET with retries |
 | `tracker/fetch.py` | calls every source in order and saves `data/raw/<date>/<source>.<format>.gz`; records each result in `data/runs/<date>.json` |
 | `tracker/universe.py` | which symbols each run asks the price and analyst sources for |
+| `tracker/sources/__init__.py` | the list and order of sources, and the shared number parser |
 | `tracker/sources/txse.py` | TXSE listings feed: fetch and convert |
 | `tracker/sources/txse_short.py` | TXSE short interest report: fetch and convert |
-| `tracker/sources/nasdaq_earnings.py` | Nasdaq earnings calendar for the run's week: fetch, convert, top-N by market cap |
+| `tracker/sources/nasdaq_earnings.py` | Nasdaq earnings calendar for the run's week: fetch, keep the tracked rows, convert, top-N by market cap |
 | `tracker/sources/yahoo.py` | Yahoo chart API: fetch and convert prices |
 | `tracker/sources/nasdaq_analyst.py` | Nasdaq analyst API: fetch and convert targets, ratings, forecasts, surprises |
 | `tracker/sources/yahoo_analyst.py` | Yahoo analyst data for TXSE common stocks: fetch and convert |
@@ -136,18 +141,31 @@ so each day counts once.
 | `tracker/status.py` | writes `data/status.json` |
 | `tracker/issues.py` | renders and opens the daily GitHub Issue, closes the previous one |
 | `tracker/trends.py` | the Trends findings in Python, to cross-check the page |
-| `index.html`, `assets/today.js` | Today page |
-| `browse.html`, `assets/browse.js` | Browse page: filters (exchange, group, flag), search, sort by every numeric column, starred shortlist |
-| `trends.html`, `assets/trends.js` | Trends page: value explorer with item picker, five findings with charts |
-| `assets/app.js` | shared navigation, theme, data loading, CSV parsing, the move rule in the browser |
-| `assets/style.css` | shared fonts and colors (light and dark) |
+| `index.html`, `assets/today.js` | Today page: hero, market tiles, Houston desk, biggest moves, signals, sources, latest values |
+| `browse.html`, `assets/browse.js` | Browse page: filters (exchange, group, Houston desk, signal), search, sort by every numeric column, starred shortlist |
+| `trends.html`, `assets/trends.js` | Trends page: value explorer with ticker picker, six findings with charts, notes and data tables |
+| `assets/app.js` | shared navigation, theme, data loading, CSV parsing, the move rule in the browser, colour scale, animations |
+| `assets/style.css` | shared fonts, colours (light and dark) and layout |
+| `assets/space.css` | the Space City theme: night-sky hero, Houston desk cards, gauge, astronauts, footer skyline |
+| `assets/space.js` | original SVG artwork: Houston-style skyline, stars, rocket, hero trendline, desk icons, footer skyline |
+| `assets/astro.js` | original SVG astronauts: flag-bearer with a waving Texas flag, rocket rider, floating astronaut, helmet icon |
+| `assets/fonts/Inter-400-700.woff2` | Inter (OFL), interface and body text |
+| `assets/fonts/SourceSerif4-400-700.woff2` | Source Serif 4 (OFL), headings |
+| `assets/fonts/IBMPlexMono-400.woff2`, `assets/fonts/IBMPlexMono-500.woff2` | IBM Plex Mono (OFL), tickers |
 | `assets/vendor/chart.umd.min.js` | Chart.js 4.4.1 (MIT), served locally so charts work offline |
-| `assets/icons/` | app icons; `scripts/make_icons.py` draws them |
-| `manifest.webmanifest`, `sw.js` | web app manifest and service worker (installable, offline) |
-| `tests/` | pytest: source conversion, history build and same-day re-run, failed source, move rule, Trends numbers |
+| `assets/icons/icon-192.png`, `assets/icons/icon-512.png`, `assets/icons/maskable-512.png` | app icons (browser tab, install, Android maskable) |
+| `scripts/make_icons.py` | draws the app icons |
+| `manifest.webmanifest`, `sw.js` | web app manifest and service worker (installable, works offline with the last data loaded) |
+| `tests/__init__.py`, `tests/conftest.py` | test package and hand-made raw files shaped like each source's real responses |
+| `tests/test_sources.py` | conversion of each source to the common columns |
+| `tests/test_history.py` | history build, missing sources, rebuild reproducibility, failed source, second run on the same day, status file |
+| `tests/test_moves.py` | the move rule |
+| `tests/test_trends.py` | the Trends numbers |
 | `.github/workflows/daily.yml` | daily run at 04:23 UTC: fetch, build, issue, commit data, publish site |
 | `.github/workflows/tests.yml` | runs the tests on every push |
 | `.github/workflows/pages.yml` | publishes the site to GitHub Pages |
-| `data/raw/`, `data/runs/`, `data/history.csv`, `data/status.json` | the data (written by the pipeline) |
+| `data/raw/<date>/<source>.<format>.gz` | raw files, one per source per day, compressed, in the format the source returned |
+| `data/runs/<date>.json` | each run's record: every source's ok / count / error |
+| `data/history.csv`, `data/status.json` | the history and the latest run's status (written by the pipeline) |
 
 Data: TXSE, Nasdaq and Yahoo Finance, for a class project. Not investment advice.

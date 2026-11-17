@@ -1,12 +1,16 @@
 """Nasdaq earnings calendar for the week of the run (Monday to Friday; a weekend
 run looks at the coming week). One request per weekday; the raw file holds the
-five responses unchanged, keyed by date.
-Kept: every reporter in the raw file; the history keeps only the
-EARNINGS_TOP_N largest by market cap (see config.py)."""
+five responses keyed by date, in Nasdaq's own JSON structure.
+Kept: Nasdaq returns every company reporting that week (300-500 rows); the raw
+file keeps only the rows the tracker uses: the EARNINGS_TOP_N largest by market
+cap across the week, plus any other tracked symbol (watchlist, TXSE, indexes)
+that reports that week. Everything else in each response is kept unchanged."""
 
+import copy
 import datetime as dt
 import json
 
+from .. import config
 from ..http import get
 from . import num
 
@@ -31,8 +35,22 @@ def fetch(ctx):
             errors.append(f"{d}: {e}")
     if not days:
         raise RuntimeError("; ".join(errors) or "no days returned")
-    return json.dumps({"week": week_dates(ctx["date"]), "days": days},
-                      separators=(",", ":"), sort_keys=True).encode()
+    doc = trim({"week": week_dates(ctx["date"]), "days": days})
+    return json.dumps(doc, separators=(",", ":"), sort_keys=True).encode()
+
+
+def trim(doc, n=None, tracked=None):
+    """Keep only the rows the tracker uses (see the module docstring)."""
+    n = config.EARNINGS_TOP_N if n is None else n
+    tracked = set(tracked if tracked is not None else
+                  [*config.INDEXES, *config.WATCHLIST, *config.TXSE_FALLBACK, *config.HOUSTON_OF])
+    keep = set(top(parse(json.dumps(doc).encode()), n)) | tracked
+    out = copy.deepcopy(doc)
+    for resp in out["days"].values():
+        data = (resp or {}).get("data") or {}
+        if data.get("rows"):
+            data["rows"] = [r for r in data["rows"] if r.get("symbol") in keep]
+    return out
 
 
 def parse(raw):

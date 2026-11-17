@@ -88,3 +88,13 @@ def test_yahoo_analyst():
     assert (c["eps_revisions_up"], c["eps_revisions_down"]) == (8, 3)
     assert c["last_surprise_pct"] == 1.21  # the latest quarter, in percent
     assert c["next_earnings"] == "2026-11-18"
+
+
+def test_earnings_raw_keeps_only_tracked_rows():
+    import json
+    doc = json.loads(earnings_raw())
+    small = nasdaq_earnings.trim(doc, n=1, tracked=["HD"])
+    kept = nasdaq_earnings.parse(json.dumps(small).encode())
+    assert set(kept) == {"NVDA", "HD"}          # the top 1 by market cap, plus a tracked symbol
+    assert nasdaq_earnings.top(kept, 1) == nasdaq_earnings.top(nasdaq_earnings.parse(earnings_raw()), 1)
+    assert set(small["days"]) == set(doc["days"])   # the response structure is unchanged
