@@ -51,6 +51,7 @@ def test_groups_and_signals(day_files):
     assert r["NVDA"]["signals"] == "Earnings this week; Expected to rise; Below expectations"
     assert "Expected to fall" in r["CFR"]["signals"]  # short position up 50%
     assert "short_interest" not in r["CFR-PB"]        # preferreds get no short interest
+    assert r["CFR"]["houston"] == "Texas Banks" and r["NVDA"]["houston"] == "" and r["^GSPC"]["houston"] == ""
 
 
 def test_signal_rules():

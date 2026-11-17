@@ -19,7 +19,9 @@
   const colMax = Object.fromEntries(NUMERIC.map(k => [k, TT.maxAbs(latest.map(r => r[k]))]));
   const KEY = "tt-browse";
   const saved = store.get(KEY, {});
-  const state = Object.assign({ q: "", exchange: "", group: "", flag: "", sort: "change_pct", dir: "desc", onlyStars: false }, saved);
+  const state = Object.assign({ q: "", exchange: "", group: "", desk: "", flag: "", sort: "change_pct", dir: "desc", onlyStars: false }, saved);
+  const urlDesk = new URLSearchParams(location.search).get("desk");   // a Houston desk card links here
+  if (urlDesk !== null) Object.assign(state, { desk: urlDesk, q: "", exchange: "", group: "", flag: "", onlyStars: false });
   let stars = new Set(store.get("tt-stars", []));
 
   const $ = id => document.getElementById(id);
@@ -29,11 +31,12 @@
   options($("f-exchange"), "All exchanges", [...new Set(latest.map(r => r.exchange).filter(Boolean))].sort());
   options($("f-group"), "All groups", ["Index", "TXSE", "Watchlist", "Earnings this week"].filter(g => latest.some(r => r.group === g)));
   options($("f-flag"), "Any flag", TT.FLAGS);
+  options($("f-desk"), "All", ["Space City", "Texas Energy", "Texas Banks"]);
   $("sort-col").innerHTML = NUMERIC.map(k => `<option value="${k}">${esc(LABELS[k])}</option>`).join("");
 
   function syncControls() {
     $("q").value = state.q; $("f-exchange").value = state.exchange; $("f-group").value = state.group;
-    $("f-flag").value = state.flag; $("sort-col").value = state.sort; $("sort-dir").value = state.dir;
+    $("f-flag").value = state.flag; $("f-desk").value = state.desk; $("sort-col").value = state.sort; $("sort-dir").value = state.dir;
     $("only-stars").setAttribute("aria-pressed", state.onlyStars);
   }
 
@@ -44,6 +47,7 @@
       (!q || r.item.toLowerCase().includes(q) || r.item_id.toLowerCase().includes(q)) &&
       (!state.exchange || r.exchange === state.exchange) &&
       (!state.group || r.group === state.group) &&
+      (!state.desk || r.houston === state.desk) &&
       (!state.flag || TT.flagsOf(r).includes(state.flag)) &&
       (!state.onlyStars || stars.has(r.item_id)));
     const k = state.sort, sign = state.dir === "asc" ? 1 : -1;
@@ -73,12 +77,12 @@
   }
 
   $("q").addEventListener("input", e => { state.q = e.target.value; render(); });
-  for (const [id, key] of [["f-exchange", "exchange"], ["f-group", "group"], ["f-flag", "flag"], ["sort-col", "sort"], ["sort-dir", "dir"]]) {
+  for (const [id, key] of [["f-exchange", "exchange"], ["f-group", "group"], ["f-desk", "desk"], ["f-flag", "flag"], ["sort-col", "sort"], ["sort-dir", "dir"]]) {
     $(id).addEventListener("change", e => { state[key] = e.target.value; render(); });
   }
   $("only-stars").addEventListener("click", () => { state.onlyStars = !state.onlyStars; syncControls(); render(); });
   $("reset").addEventListener("click", () => {
-    Object.assign(state, { q: "", exchange: "", group: "", flag: "", sort: "change_pct", dir: "desc", onlyStars: false });
+    Object.assign(state, { q: "", exchange: "", group: "", desk: "", flag: "", sort: "change_pct", dir: "desc", onlyStars: false });
     syncControls(); render();
   });
   $("table").addEventListener("click", e => {

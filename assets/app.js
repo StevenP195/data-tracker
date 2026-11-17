@@ -40,7 +40,7 @@ const TT = (() => {
     if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
     else delete document.documentElement.dataset.theme;
   }
-  applyTheme(store.get("tt-theme", "auto"));
+  applyTheme(store.get("tt-theme", "dark"));   // the "space" theme is the default
   const currentTheme = () => document.documentElement.dataset.theme ||
     (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 
@@ -288,7 +288,7 @@ const TT = (() => {
   /* wire up everything animatable under root: cards fade up, counters count,
      sparklines and bars draw (CSS keyframes keyed off the .play class) */
   function animate(root = document) {
-    root.querySelectorAll(".card, .panel, .market, .stats, .flag-col li, .moves-row").forEach(el => {
+    root.querySelectorAll(".card, .panel, .market, .stats, .flag-col li, .moves-row, .hero, .desk-card").forEach(el => {
       if (el.dataset.anim) return;
       el.dataset.anim = "1";
       onReveal(el, instant => { if (!instant) el.classList.add("play"); });

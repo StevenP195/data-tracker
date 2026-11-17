@@ -5,24 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Data Tracker · Today</title>
   <meta name="description" content="Daily tracker of the S&P 500, Nasdaq, NYSE and Texas Stock Exchange: earnings-week reporters and analyst expectations.">
-  <meta name="theme-color" content="#0d366b">
+  <meta name="theme-color" content="#071029">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/icons/icon-192.png">
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <link rel="preload" href="assets/fonts/Inter-400-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/SourceSerif4-400-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/space.css">
 </head>
 <body>
   <header id="nav"></header>
   <main>
-    <div class="page-head">
-      <div class="eyebrow" id="eyebrow">Daily market report</div>
-      <h1>Today</h1>
-      <p class="lede" id="run-line">Loading the latest run…</p>
-    </div>
+    <section class="hero" id="hero">
+      <div class="hero-copy">
+        <div class="eyebrow" id="eyebrow">Space City desk · Houston, TX</div>
+        <h1>Today</h1>
+        <p class="lede" id="run-line">Loading the latest run…</p>
+        <div class="hero-quotes" id="hero-quotes"></div>
+      </div>
+    </section>
 
     <section class="markets" id="markets" aria-label="Markets"></section>
+
+    <div class="desk-head">
+      <div><h2>Houston desk</h2><p class="sub">Houston's industries since the previous run: energy, space and Texas banking, plus the market's overall pulse.</p></div>
+      <div id="desk-legend"></div>
+    </div>
+    <section class="desk" id="desk" aria-label="Houston desk"></section>
     <section class="stats" id="stats" aria-label="Run counts"></section>
 
     <section class="card">
@@ -66,6 +76,7 @@
   </main>
   <footer>Prices: TXSE official feed and Yahoo Finance · Earnings and analyst data: Nasdaq and Yahoo Finance · Short interest: TXSE.
     Built for a Financial Data Analytics course project. Not investment advice.</footer>
+  <script src="assets/space.js"></script>
   <script src="assets/app.js"></script>
   <script src="assets/today.js"></script>
 </body>

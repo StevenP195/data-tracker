@@ -30,7 +30,17 @@ WATCHLIST = [
     "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META",   # Nasdaq
     "JPM", "BAC", "GS", "WFC",                          # NYSE banks
     "XOM", "CVX", "COP", "SLB", "KMI", "HAL",           # NYSE energy (Houston-heavy)
+    "LUNR", "KBR", "LMT", "BA",                         # aerospace (Space City)
 ]
+
+# The Houston desk: the tracker's Houston-analyst view. Each tracked item in one of
+# these baskets gets the basket name in the `houston` column of the history file.
+HOUSTON_DESK = {
+    "Texas Energy": ["XOM", "CVX", "COP", "SLB", "KMI", "HAL", "ET", "SUN", "SUNC", "USAC", "OILT"],
+    "Space City": ["LUNR", "KBR", "LMT", "BA"],
+    "Texas Banks": ["CFR", "TXCP", "IBOC", "OBK"],
+}
+HOUSTON_OF = {sym: desk for desk, syms in HOUSTON_DESK.items() for sym in syms}
 
 # Used only when the TXSE listings feed fails that day, so TXSE prices are still
 # requested from Yahoo. The real list always comes from the TXSE feed.
@@ -56,7 +66,7 @@ TOP_MOVES = 10               # how many biggest moves the issue and Today page l
 # ---- history file ----------------------------------------------------------
 HISTORY_COLUMNS = [
     "date", "item_id", "item", "source",
-    "exchange", "group", "signals", "price_date",
+    "exchange", "group", "houston", "signals", "price_date",
     "close", "change_pct", "volume", "high_52w", "low_52w", "pct_off_high",
     "target_price", "upside_pct", "analysts_buy", "analysts_hold", "analysts_sell",
     "eps_qtr", "eps_forecast", "eps_revisions_up", "eps_revisions_down", "last_surprise_pct",

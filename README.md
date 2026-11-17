@@ -25,7 +25,7 @@ series letter, e.g. `CFR-PB`). The same item lines up day after day whichever so
 |---|---|---|
 | Index | S&P 500 `^GSPC`, Nasdaq Composite `^IXIC`, NYSE Composite `^NYA`, and `TXS` (Texas Capital Texas Equity Index ETF, listed on TXSE) as the stand-in for the TXSE, which has no index of its own | 4 |
 | TXSE | every security in the TXSE listings feed: stocks, preferreds and ETFs | ~24 |
-| Watchlist | AAPL MSFT NVDA AMZN GOOGL META (Nasdaq); JPM BAC GS WFC XOM CVX COP SLB KMI HAL (NYSE) | 16 |
+| Watchlist | AAPL MSFT NVDA AMZN GOOGL META (Nasdaq); JPM BAC GS WFC XOM CVX COP SLB KMI HAL (NYSE); LUNR KBR LMT BA (aerospace) | 20 |
 | Earnings this week | the 15 largest companies by market cap reporting Monday–Friday of the run's week (a weekend run looks at the coming week); these rotate as the week changes | ≤15 |
 
 ## Sources
@@ -55,6 +55,7 @@ left empty.
 | `source` | source of the row's price: `txse` (TXSE official close) for TXSE listings, `yahoo_chart` for the rest | text |
 | `exchange` | Index, NYSE, Nasdaq or TXSE | text |
 | `group` | Index, TXSE, Watchlist or Earnings this week (why the item is tracked) | text |
+| `houston` | Houston desk basket: Texas Energy, Space City (aerospace) or Texas Banks; empty otherwise (lists in `tracker/config.py`) | text |
 | `signals` | flags, separated by `; ` (see Signal rules) | text |
 | `price_date` | trading day the close belongs to (New York date) | YYYY-MM-DD |
 | `close` | closing price, or index level | USD (index points for indexes) |

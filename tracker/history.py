@@ -117,6 +117,7 @@ def day_rows(date: str, raw_files: dict):
             r.update(short_interest=s["short_interest"], short_change_pct=s["short_change_pct"],
                      days_to_cover=s["days_to_cover"])
         r.pop("_common", None)
+        r["houston"] = config.HOUSTON_OF.get(iid, "")
         r["signals"] = "; ".join(signals(r))
         r["date"] = date
     return [rows[k] for k in sorted(rows)]

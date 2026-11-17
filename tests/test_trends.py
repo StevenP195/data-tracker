@@ -6,6 +6,7 @@ from tracker import trends
 
 def row(date, iid, group, close, upside="", signals="", up="", down=""):
     return {"date": date, "item_id": iid, "item": iid, "group": group, "exchange": "TXSE" if group == "TXSE" else "NYSE",
+            "houston": "Texas Banks" if iid == "CFR" else "",
             "close": str(close), "upside_pct": str(upside), "signals": signals,
             "eps_revisions_up": str(up), "eps_revisions_down": str(down)}
 
@@ -42,3 +43,7 @@ def test_flag_counts():
     (d1, c1, n1), (d2, c2, n2) = trends.flag_counts(ROWS)
     assert c1["Expected to fall"] == 1 and c1["Below expectations"] == 0 and n1 == 1
     assert c2["Expected to rise"] == 1 and c2["Below expectations"] == 1 and n2 == 1
+
+
+def test_houston_desk():
+    assert trends.houston_desk(ROWS) == {"Texas Banks": (10.0, {"CFR": 10.0})}

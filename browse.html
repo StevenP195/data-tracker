@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Data Tracker · Browse</title>
   <meta name="description" content="Latest values for every tracked index and stock, with filters, search, sorting and a shortlist.">
-  <meta name="theme-color" content="#0d366b">
+  <meta name="theme-color" content="#071029">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/icons/icon-192.png">
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <link rel="preload" href="assets/fonts/Inter-400-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/SourceSerif4-400-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/space.css">
 </head>
 <body>
   <header id="nav"></header>
@@ -26,6 +27,7 @@
         <label>Search names<input type="search" id="q" placeholder="e.g. Frost, NVIDIA, CFR" autocomplete="off"></label>
         <label>Exchange<select id="f-exchange"></select></label>
         <label>Group<select id="f-group"></select></label>
+        <label>Houston desk<select id="f-desk"></select></label>
         <label>Signal<select id="f-flag"></select></label>
         <label>Sort by<select id="sort-col"></select></label>
         <label>Direction<select id="sort-dir"><option value="desc">High → low</option><option value="asc">Low → high</option></select></label>
@@ -43,6 +45,7 @@
   </main>
   <footer>Prices: TXSE official feed and Yahoo Finance · Earnings and analyst data: Nasdaq and Yahoo Finance · Short interest: TXSE.
     Built for a Financial Data Analytics course project. Not investment advice.</footer>
+  <script src="assets/space.js"></script>
   <script src="assets/app.js"></script>
   <script src="assets/browse.js"></script>
 </body>

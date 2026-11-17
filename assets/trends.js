@@ -197,6 +197,26 @@
       after.push(() => divBars("f2", tx.map(t => t.id), tx.map(t => t.pct)));
     }
 
+    // 2b. Houston desk: each basket's members since the first run, grouped by desk
+    const DESKS = ["Space City", "Texas Energy", "Texas Banks"];
+    const hd = DESKS.map(desk => {
+      const m = changeSinceFirst(r => r.houston === desk).sort((a, b) => b.pct - a.pct || cmp(a.id, b.id));
+      return { desk, m, avg: m.length ? r4(m.reduce((s, x) => s + x.pct, 0) / m.length) : null };
+    }).filter(d => d.m.length);
+    let houstonPanel = null;
+    if (hd.length) {
+      const best = [...hd].sort((a, b) => b.avg - a.avg)[0];
+      const flat = hd.flatMap(d => d.m.map(x => ({ ...x, desk: d.desk })));
+      houstonPanel = panel({ id: "f6", labelText: "Houston desk", wide: true,
+        headline: dates.length < 2 ? "Baselines set" : `${best.desk} ${best.avg >= 0 ? "leads" : "held up best"}`,
+        kpi: kpiSpan(best.avg),
+        note: `${hd.map(d => `${d.desk} <b>${fmtPct(d.avg)}</b> (${d.m.length})`).join(" · ")}. Bars grouped by desk.
+          <br>Calc: per item, latest ÷ first <code>close</code> − 1 for rows whose <code>houston</code> is that desk; desk = mean of its items, ${win}.`,
+        table: tbl(["Item", "Desk", "First", "Latest", "Change"], flat.map(x => [esc(x.id), esc(x.desk), fmtNum(x.first), fmtNum(x.last), fmtPct(x.pct)])),
+      });
+      after.push(() => divBars("f6", flat.map(x => `${x.id}`), flat.map(x => x.pct)));
+    }
+
     // 3. analyst upside
     const up = rowsOn(rows, latestDate).filter(r => r.upside_pct !== null)
       .map(r => ({ id: r.item_id, item: r.item, pct: r.upside_pct, ex: r.exchange })).sort((a, b) => b.pct - a.pct || cmp(a.id, b.id));
@@ -262,7 +282,9 @@
 
     // grid order: Markets + Analyst upside side by side, TXSE full width, then Volatility + EPS revisions
     const order = out.length === 5 ? [0, 2, 1, 3, 4] : out.map((_, i) => i);
-    $("findings").innerHTML = order.map(i => out[i]).join("");
+    const html = order.map(i => out[i]);
+    if (houstonPanel) html.splice(Math.min(3, html.length), 0, houstonPanel);   // full width, after TXSE
+    $("findings").innerHTML = html.join("");
     after.forEach(f => f());
     TT.animate($("findings"));
   }

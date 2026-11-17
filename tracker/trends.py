@@ -38,6 +38,16 @@ def txse_leaders(rows):
     return change_since_first(rows, lambda r: r["group"] == "TXSE")
 
 
+def houston_desk(rows):
+    """{desk: (mean % change since first run, {item_id: % change})} for each Houston desk basket."""
+    out = {}
+    for desk in sorted({r.get("houston") for r in rows if r.get("houston")}):
+        ch = {i: v[3] for i, v in change_since_first(rows, lambda r, d=desk: r.get("houston") == d).items()}
+        if ch:
+            out[desk] = (round(mean(ch.values()), 4), ch)
+    return out
+
+
 def analyst_upside(rows):
     dates = run_dates(rows)
     if not dates:
@@ -75,6 +85,9 @@ def report(rows):
     print("2. TXSE listings (% since first run)")
     for i, (name, a, b, p) in sorted(txse_leaders(rows).items(), key=lambda x: (-x[1][3], x[0])):
         print(f"   {i:8} {a:>10,.2f} -> {b:>10,.2f}  {p:+.2f}%")
+    print("2b. Houston desk (mean % since first run)")
+    for desk, (m, ch) in houston_desk(rows).items():
+        print(f"   {desk:14} {m:+.2f}%  ({len(ch)} items)")
     print("3. Analyst upside, latest run (top and bottom 5)")
     up = analyst_upside(rows)
     for i, name, p in up[:5] + up[-5:]:

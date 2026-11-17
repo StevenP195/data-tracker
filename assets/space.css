@@ -1,0 +1,109 @@
+/* Space City theme: hero, Houston desk, footer skyline, star field.
+   The illustration colours are fixed: the hero is a night sky in both themes. */
+:root {
+  --sky-top: #081634; --sky-bottom: #12305e; --sky-star: #e9f4ff; --sky-line: #6fd6f5;
+  --sky-tower: #0c1f44; --sky-window: #9fe3f7; --sky-gold: #f2b33d;
+  --pos-hero: #5aa9ff; --neg-hero: #ff8a4c;
+}
+
+/* dark "space" theme: faint star field behind the page and a cyan glow on panels */
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(1px 1px at 12% 18%, #ffffff55 50%, transparent 51%),
+    radial-gradient(1px 1px at 68% 9%, #ffffff44 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 84% 27%, #ffffff33 50%, transparent 51%),
+    radial-gradient(1px 1px at 33% 41%, #ffffff33 50%, transparent 51%),
+    radial-gradient(1px 1px at 52% 63%, #ffffff2a 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 6% 77%, #ffffff2a 50%, transparent 51%),
+    radial-gradient(1px 1px at 91% 84%, #ffffff33 50%, transparent 51%),
+    radial-gradient(ellipse at 50% -10%, #12305e 0%, transparent 60%),
+    var(--page);
+  background-size: 640px 640px, 640px 640px, 640px 640px, 640px 640px, 640px 640px, 640px 640px, 640px 640px, 100% 900px, auto;
+  background-repeat: repeat, repeat, repeat, repeat, repeat, repeat, repeat, no-repeat, no-repeat;
+}
+:root[data-theme="dark"] .card, :root[data-theme="dark"] .panel, :root[data-theme="dark"] .market,
+:root[data-theme="dark"] .stats, :root[data-theme="dark"] .desk-card {
+  box-shadow: 0 0 0 1px var(--glow), 0 8px 28px -12px rgba(0, 0, 0, .6), 0 0 24px -8px var(--glow);
+}
+:root[data-theme="dark"] .nav { background: color-mix(in srgb, #071029 88%, transparent); }
+:root[data-theme="dark"] .market .tag { color: var(--gold); }
+
+/* ---------- hero (Today) ---------- */
+.hero { position: relative; border-radius: 14px; overflow: hidden; margin-bottom: 20px; min-height: 300px;
+  border: 1px solid #24406b; box-shadow: 0 0 0 1px rgba(110, 214, 245, .14), 0 18px 50px -24px rgba(7, 16, 41, .8); background: var(--sky-top); }
+.hero-art { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero-copy { position: relative; z-index: 1; padding: 26px 30px; max-width: 470px; color: #eef3fb; }
+.hero::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(8, 22, 52, .88) 0%, rgba(8, 22, 52, .6) 32%, transparent 52%); }
+.hero-copy { z-index: 2; }
+.hero .eyebrow { color: #8fdcf5; }
+.hero h1 { color: #fff; font-size: 2.3rem; margin-bottom: 6px; }
+.hero .lede { color: #c7d4ea; font-size: .95rem; }
+.hero .lede strong { color: #fff; }
+.hero-quotes { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 14px; font: 600 .82rem var(--sans); }
+.hero-quotes .q { display: inline-flex; gap: 6px; align-items: baseline; color: #c7d4ea; }
+.hero-quotes b { color: #fff; font-weight: 600; letter-spacing: .04em; }
+.hero-quotes .up { color: #8cc4ff; }
+.hero-quotes .down { color: #ffad80; }
+.hero-quotes .flat { color: #9fb0cc; }
+.hero .twinkle { animation: tt-twinkle 3.2s ease-in-out infinite; }
+@keyframes tt-twinkle { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+.hero .flame { transform-origin: 0 15px; animation: tt-flame .18s ease-in-out infinite alternate; }
+@keyframes tt-flame { from { transform: scaleY(.85); } to { transform: scaleY(1.15); } }
+.hero.play .trend { animation: tt-wipe 1.8s .2s cubic-bezier(.4, 0, .2, 1) both; }
+.hero.play .hero-rocket { animation: tt-fade-in .6s 1.7s ease-out both; }
+.hero.play .lone-star { animation: tt-star-in 1s .4s cubic-bezier(.2, .8, .2, 1.2) both; transform-origin: 552px 232px; transform-box: view-box; }
+@keyframes tt-star-in { from { opacity: 0; transform: scale(.3) rotate(-40deg); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) { .hero-copy { padding: 20px; max-width: none; } .hero h1 { font-size: 1.8rem; } }
+
+/* ---------- Houston desk ---------- */
+.desk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 6px 0 12px; }
+.desk-head h2 { margin: 0; }
+.desk { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.desk-card { position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border);
+  border-top: 3px solid var(--accent, var(--brand)); border-radius: var(--radius); padding: 14px 16px 12px; text-decoration: none; color: inherit;
+  transition: transform .2s ease, box-shadow .2s ease; min-width: 0; }
+a.desk-card:hover { transform: translateY(-3px); }
+.desk-card .top { display: flex; align-items: center; gap: 12px; }
+.desk-card .icon { width: 44px; height: 44px; flex: none; color: var(--accent, var(--brand)); }
+.desk-card .icon svg { width: 100%; height: 100%; }
+.desk-card h3 { font: 700 .82rem/1.2 var(--sans); letter-spacing: .1em; text-transform: uppercase; margin: 0; color: var(--ink); }
+.desk-card .sub { font-size: .74rem; }
+.desk-card .big { font: 600 1.45rem/1.2 var(--serif); margin: 10px 0 2px; }
+.desk-card ul { list-style: none; margin: 8px 0 0; padding: 0; font-size: .8rem; }
+.desk-card li { display: grid; grid-template-columns: 54px 1fr 64px; align-items: center; gap: 8px; padding: 3px 0; }
+.desk-card li .t { font: 500 .76rem var(--mono); color: var(--ink-2); }
+.desk-card li .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.desk-card .zbar { position: relative; height: 8px;
+  background: linear-gradient(90deg, transparent calc(50% - .5px), var(--axis) calc(50% - .5px), var(--axis) calc(50% + .5px), transparent calc(50% + .5px)); }
+.desk-card .zbar i { position: absolute; top: 1px; height: 6px; border-radius: 2px; transform-origin: left center; }
+.desk-card .zbar i.neg { transform-origin: right center; }
+.desk-card.play .zbar i { animation: tt-grow-x .9s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 60ms + .2s); }
+.desk-card .more { margin-top: auto; padding-top: 8px; font-size: .74rem; color: var(--pos-text); font-weight: 500; }
+.desk-card.space { --accent: #2fb5e0; }
+.desk-card.energy { --accent: #8a9bb8; }
+.desk-card.banks { --accent: var(--gold); }
+.desk-card.pulse { --accent: var(--pos); }
+:root[data-theme="dark"] .desk-card.space { --accent: #6fd6f5; }
+:root[data-theme="dark"] .desk-card.energy { --accent: #e6edf8; }
+.desk-card.play { animation: tt-rise .55s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--d, 0) * 80ms); }
+
+/* market pulse gauge */
+.gauge { display: block; width: 100%; max-width: 220px; margin: 6px auto 0; }
+.gauge .needle { transform-origin: 100px 100px; transform-box: view-box; transition: transform 1.4s cubic-bezier(.2, .8, .2, 1.1); }
+.gauge text { font: 600 9px var(--sans); fill: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.pulse-read { text-align: center; font-size: .8rem; color: var(--ink-2); }
+.pulse-read b { font: 600 1.2rem var(--serif); color: var(--ink); display: block; }
+
+@media (max-width: 1000px) { .desk { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .desk { grid-template-columns: 1fr; } }
+
+/* ---------- footer skyline (every page) ---------- */
+.footer-sky { max-width: 1200px; margin: 24px auto 0; padding: 0 24px; }
+.footer-art { display: block; width: 100%; height: 90px; }
+:root:not([data-theme="dark"]) .footer-art { --sky-tower: #e8eef7; --sky-line: #7a9ccc; --sky-window: #7a9ccc; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero .twinkle, .hero .flame { animation: none !important; }
+  .gauge .needle { transition: none !important; }
+}

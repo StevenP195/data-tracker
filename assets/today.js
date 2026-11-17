@@ -16,10 +16,12 @@
   const tick = id => `<span class="ticker">${esc(id)}</span>`;
 
   function render() {
-    document.getElementById("eyebrow").textContent = `Daily market report · ${fmtDate(latestDate)}`;
+    document.getElementById("eyebrow").textContent = `Space City desk · Houston, TX · ${fmtDate(latestDate)}`;
     document.getElementById("run-line").innerHTML =
       `Last run <strong>${esc(fmtTime(status.run_time))}</strong>` +
       (c.prevDate ? `, compared with the run of ${esc(fmtDate(c.prevDate))}.` : ". This is the first run, so there is nothing to compare yet.");
+    renderHero();
+    renderDesk();
 
     /* ---- markets ---- */
     const MARKETS = [["^GSPC", "S&P 500", ""], ["^IXIC", "Nasdaq Composite", ""], ["^NYA", "NYSE Composite", ""],
@@ -128,7 +130,94 @@
           <td class="num heat" style="${heat(r.upside_pct, uMax)}">${fmtPct(r.upside_pct, 1)}</td><td>${chips(r)}</td></tr>`;
       }).join("")}</tbody>`;
   }
+  /* ---- hero: the four markets as one composite trendline over the night skyline ---- */
+  function renderHero() {
+    const ids = ["^GSPC", "^IXIC", "^NYA", "TXS"];
+    const rebased = ids.map(id => { const s = TT.series(rows, id); const b = s.find(v => v); return s.map(v => (v && b ? v / b * 100 : null)); });
+    const composite = dates.map((_, i) => {
+      const v = rebased.map(s => s[i]).filter(x => x !== null);
+      return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+    });
+    const pts = composite.filter(v => v !== null);
+    const up = pts.length < 2 || pts[pts.length - 1] >= pts[0];
+    const hero = document.getElementById("hero");
+    hero.querySelector(".hero-art")?.remove();
+    hero.insertAdjacentHTML("afterbegin", SPACE.hero(composite, { up }));
+    const NAMES = { "^GSPC": "S&P", "^IXIC": "NASDAQ", "^NYA": "NYSE", "TXS": "TXSE" };
+    document.getElementById("hero-quotes").innerHTML = ids.map(id => {
+      const m = moveOf.get(id), r = byId.get(id);
+      const v = m ? m.move_pct : r ? r.change_pct : null;
+      return `<span class="q"><b>${NAMES[id]}</b>${delta(v)}</span>`;
+    }).join("");
+  }
+
+  /* ---- Houston desk: three industry baskets and the market pulse gauge ---- */
+  function renderDesk() {
+    // move since the previous run; an item new this run (no previous close) uses its day change instead
+    const moveVal = r => { const m = moveOf.get(r.item_id); return m ? m.move_pct : r.change_pct; };
+    const since = c.prevDate ? "since previous run" : "on the day";
+    const DESKS = [
+      ["Space City", "space", "Houston's space economy"],
+      ["Texas Energy", "energy", "Houston majors, services and Texas midstream"],
+      ["Texas Banks", "banks", "TXSE-listed Texas banks, including Frost"],
+    ];
+    const cards = DESKS.map(([desk, cls, blurb], d) => {
+      const members = latest.filter(r => r.houston === desk).map(r => ({ id: r.item_id, v: moveVal(r) })).filter(x => x.v !== null)
+        .sort((a, b) => b.v - a.v || cmp(a.id, b.id));
+      const avg = members.length ? members.reduce((s, x) => s + x.v, 0) / members.length : null;
+      const shown = members.length > 6 ? [...members.slice(0, 3), ...members.slice(-3)] : members;
+      const top = maxAbs(members.map(x => x.v));
+      const rowsHtml = shown.map((x, i) => {
+        const w = top ? Math.abs(x.v) / top * 50 : 0;
+        return `<li style="--i:${i}"><span class="t">${esc(x.id)}</span><span class="zbar"><i class="${x.v >= 0 ? "pos" : "neg"}"
+          style="${x.v >= 0 ? `left:50%` : `right:50%`};width:${w}%;background:${divColor(x.v, top)}"></i></span><span class="v">${delta(x.v)}</span></li>`;
+      }).join("");
+      return `<a class="desk-card ${cls}" style="--d:${d}" href="browse.html?desk=${encodeURIComponent(desk)}" title="Open ${esc(desk)} in Browse">
+        <div class="top"><span class="icon">${SPACE.ICONS[desk]}</span><div><h3>${esc(desk)}</h3><div class="sub">${esc(blurb)}</div></div></div>
+        <div class="big">${avg === null ? "—" : delta(avg)}</div><div class="sub">average of ${members.length} ${members.some(x => !moveOf.has(x.id)) && c.prevDate ? "(new items: day change)" : since}</div>
+        <ul>${rowsHtml}</ul>
+        <span class="more">${members.length > shown.length ? `Best 3 and worst 3 of ${members.length} · ` : ""}View in Browse →</span></a>`;
+    });
+
+    // market pulse: share of tracked items that rose (breadth), as a gauge
+    const all = latest.map(moveVal).filter(v => v !== null);
+    const ups = all.filter(v => v > 0).length, downs = all.filter(v => v < 0).length;
+    const breadth = ups + downs ? ups / (ups + downs) : .5;
+    const mean = all.length ? all.reduce((a, b) => a + b, 0) / all.length : 0;
+    const mood = breadth >= .6 ? "Bullish" : breadth <= .4 ? "Bearish" : "Neutral";
+    const seg = [];
+    for (let i = 0; i < 24; i++) {
+      const a0 = Math.PI * (1 - i / 24), a1 = Math.PI * (1 - (i + 1) / 24) + .01, R = 80, r = 62;
+      const p = (a, rad) => `${(100 + rad * Math.cos(a)).toFixed(2)},${(100 - rad * Math.sin(a)).toFixed(2)}`;
+      seg.push(`<path d="M${p(a0, R)}A${R},${R} 0 0 1 ${p(a1, R)}L${p(a1, r)}A${r},${r} 0 0 0 ${p(a0, r)}Z" fill="${divColor((i + .5) / 12 - 1, 1)}"/>`);
+    }
+    const angle = -90 + 180 * breadth;
+    cards.push(`<div class="desk-card pulse" style="--d:3">
+      <div class="top"><span class="icon">${SPACE.ICONS["Market Pulse"]}</span><div><h3>Market pulse</h3><div class="sub">Breadth of all ${all.length} items ${since}</div></div></div>
+      <svg class="gauge" viewBox="0 0 200 116" role="img" aria-label="${Math.round(breadth * 100)} percent of items rose: ${mood}">
+        ${seg.join("")}
+        <text x="16" y="114">Bearish</text><text x="184" y="114" text-anchor="end">Bullish</text>
+        <g class="needle" data-angle="${angle.toFixed(1)}" style="transform:rotate(${angle.toFixed(1)}deg)">
+          <path d="M98,100 L100,30 L102,100 Z" fill="var(--ink)"/></g>
+        <circle cx="100" cy="100" r="6" fill="var(--ink)"/><circle cx="100" cy="100" r="2.5" fill="var(--surface)"/>
+      </svg>
+      <div class="pulse-read"><b>${mood}</b>${TT.countNum(breadth * 100, { d: 0, suffix: "% advancing" })} ·
+        <span class="up">${ups}▲</span> <span class="down">${downs}▼</span> · mean ${delta(mean)}</div>
+    </div>`);
+    document.getElementById("desk").innerHTML = cards.join("");
+    document.getElementById("desk-legend").innerHTML = TT.scaleLegend();
+    const needle = document.querySelector(".gauge .needle");
+    TT.onReveal(needle.closest(".desk-card"), instant => {
+      if (instant) return;
+      needle.style.transition = "none"; needle.style.transform = "rotate(-90deg)";
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        needle.style.transition = ""; needle.style.transform = `rotate(${needle.dataset.angle}deg)`;
+      }));
+    });
+  }
+
   render();
   TT.animate();
+  TT.animate(document.getElementById("desk"));
   document.addEventListener("tt-theme", render);
 })();
