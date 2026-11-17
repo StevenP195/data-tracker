@@ -101,4 +101,5 @@
   document.getElementById("legend").innerHTML = TT.scaleLegend();
   syncControls();
   render();
+  TT.animate();
 })();

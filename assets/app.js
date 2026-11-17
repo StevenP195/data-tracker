@@ -64,6 +64,7 @@ const TT = (() => {
       const next = currentTheme() === "dark" ? "light" : "dark";
       applyTheme(next); store.set("tt-theme", next);
       applyChartTheme();
+      motion.instant = true;          // a theme switch re-renders without replaying animations
       document.dispatchEvent(new CustomEvent("tt-theme"));
     });
   }
@@ -155,7 +156,11 @@ const TT = (() => {
     : `${v > 0 ? "+" : v < 0 ? "−" : ""}${fmtNum(Math.abs(v), d)}%`;
   const dir = v => v === null || v === undefined || v === 0 ? "flat" : v > 0 ? "up" : "down";
   const arrow = v => v === null || v === undefined || v === 0 ? "" : v > 0 ? "▲ " : "▼ ";
-  const delta = (v, d = 2) => `<span class="${dir(v)}">${arrow(v)}${fmtPct(v, d)}</span>`;
+  const delta = (v, d = 2) => v === null || v === undefined ? `<span class="flat">—</span>`
+    : `<span class="${dir(v)}" data-count="${v}" data-fmt="delta" data-d="${d}">${arrow(v)}${fmtPct(v, d)}</span>`;
+  /* a number that counts up when it scrolls into view (from `from`, default 0) */
+  const countNum = (v, { d = 2, fmt = "num", from = null, suffix = "" } = {}) => v === null || v === undefined ? "—"
+    : `<span data-count="${v}" data-fmt="${fmt}" data-d="${d}"${from !== null ? ` data-from="${from}"` : ""}>${fmt === "int" ? fmtInt(v) : fmt === "pct" ? fmtPct(v, d) : fmtNum(v, d)}</span>${suffix}`;
   const fmtCol = (k, v) => {
     if (v === null || v === undefined) return "—";
     if (/_pct$/.test(k)) return fmtPct(v);
@@ -216,8 +221,8 @@ const TT = (() => {
     const d = pts.map(([x, y], i) => `${i ? "L" : "M"}${X(x).toFixed(2)},${Y(y).toFixed(2)}`).join("");
     const col = ys[ys.length - 1] >= ys[0] ? "var(--pos)" : "var(--neg)";
     return `<svg class="spark" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true">
-      <path d="${d}L100,36L0,36Z" fill="${col}" opacity=".10"/>
-      <path d="${d}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;
+      <path class="spark-area" d="${d}L100,36L0,36Z" fill="${col}" fill-opacity=".10"/>
+      <path class="spark-line" d="${d}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;
   }
 
   /* ---------- Chart.js theme (recessive axes, hairline grid, page fonts) ---------- */
@@ -228,7 +233,8 @@ const TT = (() => {
     d.font.size = 12;
     d.color = css("--muted");
     d.borderColor = css("--hairline");
-    d.animation = false;
+    // per-chart animation is set by lazyChart on first view (false when instant)
+    d.animation = reducedMotion ? false : { duration: 900, easing: "easeOutQuart" };
     d.maintainAspectRatio = false;
     d.plugins.legend.labels.color = css("--ink-2");
     d.plugins.legend.labels.usePointStyle = true;
@@ -249,6 +255,88 @@ const TT = (() => {
     tt.usePointStyle = true;
   }
 
+  /* ---------- motion: play each animation once, when it first scrolls into view ----------
+     Off when the viewer asks for reduced motion, and during re-renders (theme switch),
+     so only the first look animates. Elements keep their final values in the DOM;
+     the animation starts from the "from" state only when the element appears. */
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motion = { instant: false };
+  const motionOn = () => !reducedMotion && !motion.instant && "IntersectionObserver" in window;
+  function onReveal(el, fn) {
+    if (!motionOn()) { fn(true); return; }
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { io.disconnect(); fn(false); }
+    }, { threshold: 0.12 });
+    io.observe(el);
+  }
+  const ease = t => 1 - Math.pow(1 - t, 3);   // ease-out cubic
+  function countUp(el) {
+    const to = Number(el.dataset.count), from = el.dataset.from !== undefined ? Number(el.dataset.from) : 0;
+    const d = Number(el.dataset.d ?? 2), kind = el.dataset.fmt;
+    const fmt = v => kind === "int" ? fmtInt(v) : kind === "pct" ? fmtPct(v, d)
+      : kind === "delta" ? `${arrow(to)}${fmtPct(Math.abs(v) < 1e-9 ? 0 : v, d)}` : fmtNum(v, d);
+    if (!Number.isFinite(to) || !Number.isFinite(from)) return;
+    const dur = 1100, t0 = performance.now();
+    const step = now => {
+      const t = Math.min(1, (now - t0) / dur);
+      el.textContent = fmt(from + (to - from) * ease(t));
+      if (t < 1) requestAnimationFrame(step); else el.textContent = fmt(to);
+    };
+    el.textContent = fmt(from);
+    requestAnimationFrame(step);
+  }
+  /* wire up everything animatable under root: cards fade up, counters count,
+     sparklines and bars draw (CSS keyframes keyed off the .play class) */
+  function animate(root = document) {
+    root.querySelectorAll(".card, .panel, .market, .stats, .flag-col li, .moves-row").forEach(el => {
+      if (el.dataset.anim) return;
+      el.dataset.anim = "1";
+      onReveal(el, instant => { if (!instant) el.classList.add("play"); });
+    });
+    root.querySelectorAll("[data-count]").forEach(el => {
+      if (el.dataset.animCount) return;
+      el.dataset.animCount = "1";
+      onReveal(el, instant => { if (!instant) countUp(el); });
+    });
+  }
+  /* create a Chart.js chart when its canvas scrolls into view, so the build-out
+     animation is seen; line charts draw left to right point by point */
+  function lazyChart(canvas, config, existing) {
+    if (existing) existing.destroy();
+    const holder = { chart: null };
+    onReveal(canvas, instant => {
+      config.options = config.options || {};
+      if (instant) config.options.animation = false;
+      else if (config.type === "line") { config.options.animation = false; config.plugins = [...(config.plugins || []), revealPlugin()]; }
+      else config.options.animation = { duration: 900, easing: "easeOutQuart",
+        delay: ctx => (ctx.type === "data" && ctx.mode === "default" ? ctx.dataIndex * 45 : 0) };
+      holder.chart = new Chart(canvas, config);
+    });
+    return { destroy: () => holder.chart && holder.chart.destroy() };
+  }
+  /* line charts: the plot is revealed left to right, like a trendline being drawn live */
+  function revealPlugin(duration = 1500) {
+    let p = 0;
+    return {
+      id: "ttReveal",
+      afterInit(chart) {
+        const t0 = performance.now();
+        const tick = now => {
+          p = ease(Math.min(1, (now - t0) / duration));
+          chart.draw();
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      },
+      beforeDatasetsDraw(chart) {
+        if (p >= 1) return;
+        const a = chart.chartArea, c = chart.ctx;
+        c.save(); c.beginPath(); c.rect(a.left - 6, 0, (a.right - a.left + 12) * p, chart.height); c.clip();
+      },
+      afterDatasetsDraw() { if (p < 1) arguments[0].ctx.restore(); },
+    };
+  }
+
   function showError(err) {
     document.querySelector("main").insertAdjacentHTML("afterbegin", `<div class="card"><h2>Could not load the data</h2>
       <p class="sub">${esc(err.message)}. If you opened the file directly, run
@@ -265,6 +353,6 @@ const TT = (() => {
 
   return { NUMERIC, LABELS, FLAGS, FLAG_CLASS, GROUP_ORDER, store, loadStatus, loadHistory, parseCSV, cmp, runDates,
            rowsOn, flagsOf, series, compare, esc, fmtDate, fmtShort, fmtTime, fmtNum, fmtInt, fmtPct, fmtCol, dir,
-           arrow, delta, chips, css, divColor, heat, maxAbs, seriesColors, scaleLegend, spark, applyChartTheme,
-           showError, currentTheme };
+           arrow, delta, countNum, chips, css, divColor, heat, maxAbs, seriesColors, scaleLegend, spark, applyChartTheme,
+           animate, lazyChart, onReveal, showError, currentTheme };
 })();

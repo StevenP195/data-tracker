@@ -22,10 +22,8 @@
   const axisY = (extra = {}) => Object.assign({ grid: { color: css("--hairline"), drawTicks: false }, border: { display: false },
     ticks: { color: css("--muted"), padding: 6, font: { size: 11 } } }, extra);
   const pctTicks = { color: css("--muted"), padding: 6, font: { size: 11 }, callback: v => `${v}%` };
-  function draw(id, config) {
-    if (charts[id]) charts[id].destroy();
-    charts[id] = new Chart(document.getElementById(id), config);
-  }
+  // charts are created when they scroll into view, so the build-out animation is seen
+  function draw(id, config) { charts[id] = TT.lazyChart(document.getElementById(id), config, charts[id]); }
 
   /* ================= explorer ================= */
   const MAX_SERIES = 8;   // the validated categorical palette has 8 slots; never cycled
@@ -60,7 +58,7 @@
     $("x-series").innerHTML = X.picked.map(id => {
       const ch = lastChange(id);
       return `<span class="s-chip" title="${esc(nameOf(id))}"><i style="background:${pal[slotFor(id)]}"></i>${esc(label(id))}
-        ${ch === null ? "" : `<span class="v ${TT.dir(ch)}">${fmtPct(ch, 1)}</span>`}
+        ${ch === null ? "" : `<span class="v ${TT.dir(ch)}" data-count="${ch}" data-fmt="pct" data-d="1">${fmtPct(ch, 1)}</span>`}
         <button data-remove="${esc(id)}" aria-label="Remove ${esc(id)}">×</button></span>`;
     }).join("") + `<span class="add-box"><input type="search" id="x-add" placeholder="${full ? "8 of 8 series" : "+ Add ticker"}"
         ${full ? "disabled" : ""} autocomplete="off" aria-label="Add a ticker"><div class="suggest" id="x-suggest"></div></span>`;
@@ -97,6 +95,7 @@
     $("x-col").value = X.col;
     $("x-mode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === X.mode));
     renderSeriesBar();
+    TT.animate($("x-series"));
     const pal = TT.seriesColors();
     const rebased = X.mode === "rebased";
     const datasets = X.picked.map(id => {
@@ -163,7 +162,7 @@
           tooltip: { callbacks: { label: c => ` ${fmtPct(c.parsed[horizontal ? "x" : "y"])}` } } },
         scales: horizontal ? { x: axisY({ ticks: pctTicks }), y: axisX() } : { x: axisX(), y: axisY({ ticks: pctTicks }) } } });
   }
-  const kpiSpan = (v, d = 2) => `<span class="${TT.dir(v)}">${fmtPct(v, d)}</span>`;
+  const kpiSpan = (v, d = 2) => TT.delta(v, d);
 
   function renderFindings() {
     const out = [], after = [];
@@ -190,7 +189,7 @@
       const ups = tx.filter(t => t.pct > 0).length, downs = tx.filter(t => t.pct < 0).length;
       out.push(panel({ id: "f2", labelText: "TXSE", wide: true,
         headline: dates.length < 2 ? `${tx.length} listings tracked` : `${best.id} leads, ${worst.id} lags`,
-        kpi: `<span class="up">${ups}▲</span> <span class="down">${downs}▼</span>`,
+        kpi: `<span class="up">${TT.countNum(ups, { fmt: "int", d: 0 })}▲</span> <span class="down">${TT.countNum(downs, { fmt: "int", d: 0 })}▼</span>`,
         note: `${best.id} <b>${fmtPct(best.pct)}</b>, ${worst.id} <b>${fmtPct(worst.pct)}</b> of ${tx.length} listings${cfr ? `; CFR <b>${fmtPct(cfr.pct)}</b> (${fmtNum(cfr.first)} → ${fmtNum(cfr.last)})` : ""}.
           <br>Calc: latest ÷ first TXSE official <code>close</code> − 1, every TXSE listing, ${win}.`,
         table: tbl(["Listing", "First", "Latest", "Change"], tx.map(t => [`${esc(t.id)} <span class="sub">${esc(t.item)}</span>`, fmtNum(t.first), fmtNum(t.last), fmtPct(t.pct)])),
@@ -225,7 +224,7 @@
     }).filter(Boolean);
     if (vol.length) {
       const top = [...vol].sort((a, b) => b.avg - a.avg || cmp(a.d, b.d))[0];
-      out.push(panel({ id: "f4", labelText: "Volatility", headline: `Biggest day: ${fmtShort(top.d)}`, kpi: `${fmtNum(top.avg)}% avg |move|`,
+      out.push(panel({ id: "f4", labelText: "Volatility", headline: `Biggest day: ${fmtShort(top.d)}`, kpi: TT.countNum(top.avg, { suffix: "% avg |move|" }),
         note: `${top.n} items: ${top.up} up, ${top.down} down, mean move <b>${fmtPct(top.net)}</b>. Bars: mean signed move per run.
           <br>Calc: mean of |close ÷ previous-run close − 1| across items in both runs.`,
         table: tbl(["Run", "Items", "Up", "Down", "Mean |move|", "Mean move"], vol.map(v => [fmtDate(v.d), v.n, v.up, v.down, `${fmtNum(v.avg)}%`, fmtPct(v.net)])),
@@ -246,7 +245,7 @@
     if (fl.length) {
       const L = fl[fl.length - 1];
       out.push(panel({ id: "f5", labelText: "EPS revisions", headline: `${L.below} of ${L.withEst} see cuts`,
-        kpi: `${L.withEst ? fmtNum((L.below / L.withEst) * 100, 0) : 0}%`,
+        kpi: TT.countNum(L.withEst ? (L.below / L.withEst) * 100 : 0, { d: 0, suffix: "%" }),
         note: `Latest: rise <b>${L.rise}</b> · fall <b>${L.fall}</b> · below expectations <b>${L.below}</b> (dashed).
           <br>Calc: rows per run whose <code>signals</code> include each flag; base = rows with EPS revision data.`,
         table: tbl(["Run", "Rise", "Fall", "Below exp.", "With estimates"], fl.map(f => [fmtDate(f.d), f.rise, f.fall, f.below, f.withEst])),
@@ -265,9 +264,11 @@
     const order = out.length === 5 ? [0, 2, 1, 3, 4] : out.map((_, i) => i);
     $("findings").innerHTML = order.map(i => out[i]).join("");
     after.forEach(f => f());
+    TT.animate($("findings"));
   }
 
   renderExplorer();
   renderFindings();
+  TT.animate();
   document.addEventListener("tt-theme", () => { renderExplorer(); renderFindings(); });
 })();

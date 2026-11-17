@@ -29,7 +29,7 @@
       if (!r) return `<div class="market"><div class="name">${esc(name)}</div><div class="level">—</div></div>`;
       return `<div class="market">
         <div class="name"><span>${esc(name)}</span>${tag ? `<span class="tag">${esc(tag)}</span>` : ""}</div>
-        <div class="level">${fmtNum(r.close)}</div>
+        <div class="level">${TT.countNum(r.close, { from: c.prevById.get(id)?.close ?? null })}</div>
         <div class="delta">${m ? delta(m.move_pct) : delta(r.change_pct)} <span class="sub">${m ? "since previous run" : "on the day"}</span></div>
         <div class="meta">Day ${fmtPct(r.change_pct)} · as of ${esc(fmtShort(r.price_date))} · ${dates.length} run${dates.length === 1 ? "" : "s"}</div>
         ${TT.spark(TT.series(rows, id))}
@@ -41,11 +41,11 @@
     const stat = (label, value, note = "") =>
       `<div class="stat"><div class="label">${label}</div><div class="value">${value}</div><div class="note">${note}</div></div>`;
     document.getElementById("stats").innerHTML = [
-      stat("Items tracked", status.items, "in the latest run"),
+      stat("Items tracked", TT.countNum(status.items, { fmt: "int", d: 0 }), "in the latest run"),
       stat("Sources healthy", `${okCount} / ${status.sources.length}`, okCount === status.sources.length ? "all responded" : "see Sources"),
-      stat("Days with data", status.days_with_success, `since ${fmtShort(status.first_run_date)}`),
-      stat("Appeared", status.new_today.length, "since previous run"),
-      stat("Disappeared", status.gone_today.length, "since previous run"),
+      stat("Days with data", TT.countNum(status.days_with_success, { fmt: "int", d: 0 }), `since ${fmtShort(status.first_run_date)}`),
+      stat("Appeared", TT.countNum(status.new_today.length, { fmt: "int", d: 0 }), "since previous run"),
+      stat("Disappeared", TT.countNum(status.gone_today.length, { fmt: "int", d: 0 }), "since previous run"),
     ].join("");
 
     /* ---- biggest moves: diverging bars centred on zero ---- */
@@ -56,12 +56,12 @@
     document.getElementById("moves").innerHTML = c.moves.length ? `<div class="table-wrap"><table>
       <thead><tr><th>Item</th><th>Exchange</th><th class="num">Old close</th><th class="num">New close</th>
         <th style="width:38%">Move</th><th class="num">%</th></tr></thead>
-      <tbody>${c.moves.map(m => {
+      <tbody>${c.moves.map((m, i) => {
         const w = (Math.abs(m.move_pct) / mMax) * 50;
         const bar = `<div style="position:relative;height:14px;background:linear-gradient(90deg,transparent calc(50% - .5px),var(--axis) calc(50% - .5px),var(--axis) calc(50% + .5px),transparent calc(50% + .5px))">
-          <div title="${fmtPct(m.move_pct)}" style="position:absolute;top:2px;height:10px;border-radius:${m.move_pct > 0 ? "0 4px 4px 0" : "4px 0 0 4px"};
+          <div class="mbar ${m.move_pct > 0 ? "pos" : "neg"}" title="${fmtPct(m.move_pct)}" style="position:absolute;top:2px;height:10px;border-radius:${m.move_pct > 0 ? "0 4px 4px 0" : "4px 0 0 4px"};
             ${m.move_pct > 0 ? `left:50%;width:${w}%` : `right:50%;width:${w}%`};background:${divColor(m.move_pct, mMax)}"></div></div>`;
-        return `<tr><td><span class="item-name">${esc(m.item)}</span>${tick(m.item_id)}</td><td>${esc(m.exchange)}</td>
+        return `<tr class="moves-row" style="--i:${i}"><td><span class="item-name">${esc(m.item)}</span>${tick(m.item_id)}</td><td>${esc(m.exchange)}</td>
           <td class="num">${fmtNum(m.old)}</td><td class="num">${fmtNum(m.new)}</td><td>${bar}</td>
           <td class="num">${delta(m.move_pct)}</td></tr>`;
       }).join("")}</tbody></table></div>`
@@ -73,9 +73,9 @@
         .sort((a, b) => (desc ? -1 : 1) * ((a[sortKey] ?? -Infinity) - (b[sortKey] ?? -Infinity)) || cmp(a.item_id, b.item_id));
       const top = maxAbs(list.map(r => meter ? meter(r) : null));
       return `<div class="flag-col"><h3><span>${esc(flag)}</span><span class="n">${list.length}</span></h3>
-        <ul>${list.map(r => {
+        <ul>${list.map((r, i) => {
           const mv = meter ? meter(r) : null;
-          return `<li><div><span class="item-name">${esc(r.item)}</span>${tick(r.item_id)}${r.exchange === "TXSE" ? ' <span class="chip txse">TXSE</span>' : ""}
+          return `<li style="--i:${Math.min(i, 12)}"><div><span class="item-name">${esc(r.item)}</span>${tick(r.item_id)}${r.exchange === "TXSE" ? ' <span class="chip txse">TXSE</span>' : ""}
             ${mv !== null && top ? `<div class="meter"><i style="width:${(Math.abs(mv) / top) * 100}%;background:${divColor(mv, top)}"></i></div>` : ""}</div>
             <span class="val">${show(r)}</span></li>`;
         }).join("") || '<li class="empty">None this run.</li>'}</ul></div>`;
@@ -129,5 +129,6 @@
       }).join("")}</tbody>`;
   }
   render();
+  TT.animate();
   document.addEventListener("tt-theme", render);
 })();
