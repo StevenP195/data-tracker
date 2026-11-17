@@ -44,7 +44,7 @@ TXSE_FALLBACK = [
 EARNINGS_TOP_N = 15
 
 # ---- signal rules ----------------------------------------------------------
-RISE_MIN_UPSIDE = 15.0       # % below the consensus price target ...
+RISE_MIN_UPSIDE = 25.0       # % below the consensus price target ...
                              # ... and buy ratings at least half of all ratings
 FALL_MAX_UPSIDE = 0.0        # trading at or above the consensus target, or sells > buys
 SHORT_JUMP_PCT = 25.0        # TXSE common stock whose short position grew this much

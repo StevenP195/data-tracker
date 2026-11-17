@@ -79,7 +79,7 @@ left empty.
 ## Signal rules
 
 - **Earnings this week:** reports Monday–Friday of the run's week.
-- **Expected to rise:** `upside_pct` ≥ 15 and buy ratings are at least half of all ratings.
+- **Expected to rise:** `upside_pct` ≥ 25 and buy ratings are at least half of all ratings.
 - **Expected to fall:** `upside_pct` ≤ 0 (at or above the consensus target), or more sell than buy ratings, or
   (TXSE common stocks) short interest up 25% or more since the previous report.
 - **Below expectations:** more EPS estimate cuts than raises (`eps_revisions_down` > `eps_revisions_up`).

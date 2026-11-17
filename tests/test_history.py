@@ -56,8 +56,9 @@ def test_groups_and_signals(day_files):
 def test_signal_rules():
     s = history.signals
     assert s({}) == []
-    assert s({"upside_pct": 20, "analysts_buy": 5, "analysts_hold": 5, "analysts_sell": 0}) == ["Expected to rise"]
-    assert s({"upside_pct": 20, "analysts_buy": 2, "analysts_hold": 5, "analysts_sell": 0}) == []  # buys < half
+    assert s({"upside_pct": 30, "analysts_buy": 5, "analysts_hold": 5, "analysts_sell": 0}) == ["Expected to rise"]
+    assert s({"upside_pct": 30, "analysts_buy": 2, "analysts_hold": 5, "analysts_sell": 0}) == []  # buys < half
+    assert s({"upside_pct": 20, "analysts_buy": 5, "analysts_hold": 0, "analysts_sell": 0}) == []  # under the 25% bar
     assert s({"upside_pct": -1}) == ["Expected to fall"]
     assert s({"upside_pct": 5, "analysts_buy": 1, "analysts_sell": 2}) == ["Expected to fall"]
     assert s({"eps_revisions_up": 1, "eps_revisions_down": 2}) == ["Below expectations"]
