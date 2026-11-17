@@ -34,8 +34,8 @@ def test_analyst_upside_latest_only():
 
 
 def test_daily_volatility():
-    # moves on 11-17: +2%, -2.5%, +10%, 0% -> mean of absolutes = 3.625
-    assert trends.daily_volatility(ROWS) == [("2026-11-17", 3.625, 4)]
+    # moves on 11-17: +2%, -2.5%, +10%, 0% -> mean of absolutes 3.625, signed mean 2.375
+    assert trends.daily_volatility(ROWS) == [("2026-11-17", 3.625, 4, 2.375)]
 
 
 def test_flag_counts():

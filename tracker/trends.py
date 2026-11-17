@@ -47,12 +47,12 @@ def analyst_upside(rows):
 
 
 def daily_volatility(rows):
-    """[(date, mean absolute move %, items compared)] for every run after the first."""
+    """[(date, mean absolute move %, items compared, mean signed move %)] for every run after the first."""
     out = []
     for d in run_dates(rows)[1:]:
-        ms = [abs(m["move_pct"]) for m in compare(rows, d)["all_moves"]]
+        ms = [m["move_pct"] for m in compare(rows, d)["all_moves"]]
         if ms:
-            out.append((d, round(mean(ms), 4), len(ms)))
+            out.append((d, round(mean(abs(m) for m in ms), 4), len(ms), round(mean(ms), 4)))
     return out
 
 
@@ -80,8 +80,8 @@ def report(rows):
     for i, name, p in up[:5] + up[-5:]:
         print(f"   {i:8} {p:+.2f}%")
     print("4. Mean absolute move per run")
-    for d, m, n in daily_volatility(rows):
-        print(f"   {d}  {m:.2f}%  ({n} items)")
+    for d, m, n, net in daily_volatility(rows):
+        print(f"   {d}  mean |move| {m:.2f}%  mean move {net:+.2f}%  ({n} items)")
     print("5. Flags per run")
     for d, c, n in flag_counts(rows):
         print(f"   {d}  " + "  ".join(f"{k}: {v}" for k, v in c.items()) + f"  (with estimates: {n})")

@@ -3,7 +3,7 @@
    starred shortlist saved in localStorage. */
 
 (async () => {
-  const { esc, fmtCol, dir, chips, cmp, NUMERIC, LABELS, store } = TT;
+  const { esc, fmtCol, chips, cmp, NUMERIC, LABELS, store } = TT;
   let rows;
   try { rows = await TT.loadHistory(); } catch (e) { TT.showError(e); return; }
 
@@ -16,6 +16,7 @@
   const SHOWN = ["close", "change_pct", "upside_pct", "target_price", "analysts_buy", "analysts_hold", "analysts_sell",
     "eps_forecast", "eps_revisions_up", "eps_revisions_down", "last_surprise_pct", "pct_off_high", "volume",
     "market_cap_b", "short_change_pct", "days_to_cover", "high_52w", "low_52w", "short_interest"];
+  const colMax = Object.fromEntries(NUMERIC.map(k => [k, TT.maxAbs(latest.map(r => r[k]))]));
   const KEY = "tt-browse";
   const saved = store.get(KEY, {});
   const state = Object.assign({ q: "", exchange: "", group: "", flag: "", sort: "change_pct", dir: "desc", onlyStars: false }, saved);
@@ -56,11 +57,16 @@
     $("count").textContent = `${list.length} of ${latest.length} items · ${stars.size} starred`;
 
     const th = c => `<th class="num sortable ${c === k ? "sorted" : ""}" data-col="${c}">${esc(LABELS[c])}<span class="arrow">${c === k ? (state.dir === "asc" ? "▲" : "▼") : "↕"}</span></th>`;
-    $("table").innerHTML = `<thead><tr><th>★</th><th>Item</th><th>Exchange</th><th>Group</th><th>Flags</th>${SHOWN.map(th).join("")}<th>Earnings</th><th>EPS qtr</th><th>Price date</th></tr></thead>
+    // the key columns, plus whichever column is sorted, sit next to the name so they are always on screen
+    const LEAD = ["close", "change_pct", "upside_pct", ...(["close", "change_pct", "upside_pct"].includes(k) ? [] : [k])];
+    const REST = SHOWN.filter(c => !LEAD.includes(c));
+    const cell = (r, c) => `<td class="num${/_pct$/.test(c) ? " heat" : ""}" style="${/_pct$/.test(c) ? TT.heat(r[c], colMax[c]) : ""}">${fmtCol(c, r[c])}</td>`;
+    $("table").innerHTML = `<thead><tr><th>★</th><th>Item</th>${LEAD.map(th).join("")}<th>Exchange</th><th>Group</th><th>Signals</th>${REST.map(th).join("")}<th>Earnings</th><th>EPS qtr</th><th>Price date</th></tr></thead>
       <tbody>${list.map(r => `<tr>
         <td><button class="star" data-id="${esc(r.item_id)}" aria-pressed="${stars.has(r.item_id)}" title="Add to shortlist">${stars.has(r.item_id) ? "★" : "☆"}</button></td>
-        <td>${esc(r.item)} <span class="ticker">${esc(r.item_id)}</span></td><td>${esc(r.exchange)}</td><td>${esc(r.group)}</td><td>${chips(r)}</td>
-        ${SHOWN.map(c => `<td class="num ${/_pct$/.test(c) ? dir(r[c]) : ""}">${fmtCol(c, r[c])}</td>`).join("")}
+        <td><span class="item-name">${esc(r.item)}</span><span class="ticker">${esc(r.item_id)}</span></td>
+        ${LEAD.map(c => cell(r, c)).join("")}<td>${esc(r.exchange)}</td><td>${esc(r.group)}</td><td>${chips(r)}</td>
+        ${REST.map(c => cell(r, c)).join("")}
         <td>${r.earnings_date ? esc(TT.fmtDate(r.earnings_date)) + (r.earnings_time ? ` <span class="sub">${esc(r.earnings_time)}</span>` : "") : "—"}</td>
         <td>${esc(r.eps_qtr) || "—"}</td><td>${esc(TT.fmtDate(r.price_date))}</td></tr>`).join("")
         || `<tr><td colspan="30" class="empty">No items match these filters.</td></tr>`}</tbody>`;
@@ -92,6 +98,7 @@
       syncControls(); render();
     }
   });
+  document.getElementById("legend").innerHTML = TT.scaleLegend();
   syncControls();
   render();
 })();

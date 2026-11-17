@@ -5,37 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Data Tracker · Trends</title>
   <meta name="description" content="A report on the tracker's history: market scoreboard, TXSE leaders, analyst upside, volatility and estimate revisions.">
-  <meta name="theme-color" content="#0b2a4a">
+  <meta name="theme-color" content="#0d366b">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/icons/icon-192.png">
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="preload" href="assets/fonts/Inter-400-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/SourceSerif4-400-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
   <header id="nav"></header>
   <main>
     <div class="page-head">
+      <div class="eyebrow">Report</div>
       <h1>Trends</h1>
-      <p id="span">Every number on this page is computed in your browser from data/history.csv.</p>
+      <p class="lede" id="span">Every number on this page is computed in your browser from data/history.csv.</p>
     </div>
 
     <section class="card">
-      <h2>Explore any value over time</h2>
+      <div class="card-head">
+        <div><h2>Explore any value over time</h2>
+          <p class="sub">Pick a value and up to eight items. Rebasing sets each item's first available value to 100, so different price levels compare on one axis.</p></div>
+      </div>
       <div class="controls">
         <label>Value<select id="x-col"></select></label>
-        <label>Show as<select id="x-mode"><option value="raw">Actual values</option><option value="rebased">Rebased to 100 at first day</option></select></label>
+        <label>Show as<select id="x-mode"><option value="rebased">Rebased (first day = 100)</option><option value="raw">Actual values</option></select></label>
         <label>Find items<input type="search" id="x-q" placeholder="filter the list" autocomplete="off"></label>
         <button class="btn" data-pick="Index">Indexes</button>
-        <button class="btn" data-pick="TXSE">TXSE</button>
+        <button class="btn" data-pick="TXSE">TXSE stocks</button>
         <button class="btn" data-pick="stars">★ Shortlist</button>
         <button class="btn" data-pick="none">Clear</button>
       </div>
       <div class="picker" id="x-items"></div>
-      <div class="chart-box"><canvas id="x-chart"></canvas></div>
+      <figure>
+        <div class="chart-box"><canvas id="x-chart"></canvas></div>
+        <figcaption><span id="x-caption"></span><span class="sub" id="x-note"></span></figcaption>
+      </figure>
     </section>
 
+    <div class="section-label">Findings</div>
     <div id="findings"></div>
   </main>
+  <footer>Prices: TXSE official feed and Yahoo Finance · Earnings and analyst data: Nasdaq and Yahoo Finance · Short interest: TXSE.
+    Built for a Financial Data Analytics course project. Not investment advice.</footer>
   <script src="assets/vendor/chart.umd.min.js"></script>
   <script src="assets/app.js"></script>
   <script src="assets/trends.js"></script>
