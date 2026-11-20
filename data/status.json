@@ -1,10 +1,14 @@
 {
-  "run_time": "2026-11-19T13:29:02Z",
+  "run_time": "2026-11-20T13:10:37Z",
   "first_run_date": "2026-11-17",
-  "days_with_success": 3,
+  "days_with_success": 4,
   "items": 63,
-  "new_today": [],
-  "gone_today": [],
+  "new_today": [
+    "VIK"
+  ],
+  "gone_today": [
+    "BHP"
+  ],
   "sources": [
     {
       "name": "txse_listings",
