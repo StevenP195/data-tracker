@@ -1,0 +1,48 @@
+{
+  "run_time": "2026-11-24T14:58:52Z",
+  "date": "2026-11-24",
+  "sources": [
+    {
+      "name": "txse_listings",
+      "format": "json",
+      "ok": true,
+      "count": 26,
+      "error": ""
+    },
+    {
+      "name": "txse_short_interest",
+      "format": "csv",
+      "ok": true,
+      "count": 22,
+      "error": ""
+    },
+    {
+      "name": "nasdaq_earnings",
+      "format": "json",
+      "ok": true,
+      "count": 15,
+      "error": ""
+    },
+    {
+      "name": "yahoo_chart",
+      "format": "json",
+      "ok": true,
+      "count": 64,
+      "error": ""
+    },
+    {
+      "name": "nasdaq_analyst",
+      "format": "json",
+      "ok": true,
+      "count": 36,
+      "error": ""
+    },
+    {
+      "name": "yahoo_analyst",
+      "format": "json",
+      "ok": true,
+      "count": 11,
+      "error": ""
+    }
+  ]
+}
