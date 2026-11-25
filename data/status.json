@@ -1,22 +1,21 @@
 {
-  "run_time": "2026-11-24T14:58:52Z",
+  "run_time": "2026-11-25T14:36:18Z",
   "first_run_date": "2026-11-17",
-  "days_with_success": 8,
-  "items": 64,
+  "days_with_success": 9,
+  "items": 65,
   "new_today": [
-    "CRWD",
-    "ZS"
+    "NICO",
+    "SYM"
   ],
   "gone_today": [
-    "SYM",
-    "TCOM"
+    "BHP"
   ],
   "sources": [
     {
       "name": "txse_listings",
       "format": "json",
       "ok": true,
-      "count": 26,
+      "count": 27,
       "error": ""
     },
     {
@@ -37,7 +36,7 @@
       "name": "yahoo_chart",
       "format": "json",
       "ok": true,
-      "count": 64,
+      "count": 65,
       "error": ""
     },
     {
